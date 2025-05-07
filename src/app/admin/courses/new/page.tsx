@@ -1,4 +1,4 @@
-import CourseForm from '@/features/users/db/courses/components/CourseForm'
+import CourseForm from '@/features/courses/components/CourseForm'
 import PageHeader from '@/components/PageHeader'
 import React from 'react'
 

@@ -6,12 +6,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import RequiredLabelIcon from "./RequiredLabelIcon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { createCourse } from "../actions/courses";
 import { actionToast } from "@/hooks/use-toast";
+import RequiredLabelIcon from "../../../components/RequiredLabelIcon";
 
 const CourseForm = () => {
   const form = useForm<z.infer<typeof courseSchema>>({
