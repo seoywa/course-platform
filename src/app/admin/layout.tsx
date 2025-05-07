@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { canAccessAdminPages } from "@/permissions/general";
 import { getCurrentUser } from "@/services/clerk";
@@ -5,7 +6,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import React, { ReactNode, Suspense } from "react";
 
-const ConsumerLayout = ({ children }: Readonly<{ children: ReactNode }>) => {
+const AdminLayout = ({ children }: Readonly<{ children: ReactNode }>) => {
   return (
     <>
       <Navbar />
@@ -14,30 +15,38 @@ const ConsumerLayout = ({ children }: Readonly<{ children: ReactNode }>) => {
   );
 };
 
-export default ConsumerLayout;
+
 
 function Navbar() {
   return (
     <header className="flex h-12 shadow bg-background z-10">
       <nav className="flex gap-4 container">
-        <Link className="mr-auto text-lg hover:underline px-2" href="/">
-          Web Dev Simplified
-        </Link>
+        <div className="mr-auto flex items-center gap-2">
+          <Link className="text-lg hover:underline" href="/">
+            Web Dev Simplified
+          </Link>
+          <Badge>Admin</Badge>
+
+        </div>
 
         <Suspense fallback={'Loading'}>
-          <SignedIn>
-            <AdminLink />
             <Link
               className="hover:bg-accent/10 flex items-center px-2"
-              href="/courses"
+              href="/admin/courses"
             >
-              My Courses
+              Courses
             </Link>
             <Link
               className="hover:bg-accent/10 flex items-center px-2"
-              href="/purchases"
+              href="/admin/products"
             >
-              Purchase History
+              Products
+            </Link>
+            <Link
+              className="hover:bg-accent/10 flex items-center px-2"
+              href="/admin/sales"
+            >
+              Sales
             </Link>
             <div className="size-8 self-center">
               <UserButton
@@ -48,7 +57,6 @@ function Navbar() {
                 }}
                 />
             </div>
-          </SignedIn>
         </Suspense>
 
         <Suspense>
@@ -65,7 +73,6 @@ function Navbar() {
 
 async function AdminLink() {
   const user = await getCurrentUser({ allData: true });
-  console.log(user.user?.name)
 
   if (!canAccessAdminPages(user)) return null;
   
@@ -78,3 +85,5 @@ async function AdminLink() {
     </Link>
   )
 }
+
+export default AdminLayout;
