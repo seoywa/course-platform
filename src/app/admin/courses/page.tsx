@@ -13,10 +13,18 @@ import {
   UserCourseAccessTable,
 } from "@/drizzle/schema";
 import { asc, countDistinct, eq } from "drizzle-orm";
+import { getUserCourseAccessGlobalTag } from "@/features/courses/db/cache/userCourseAccess";
+import { getCourseSectionGlobalTag } from "@/features/courseSections/db/cache";
+import { getLessonGlobalTag } from "@/features/lessons/db/cache/cache";
 
 async function getCourses() {
   "use cache";
-  cacheTag(getCourseGlobalTag());
+  cacheTag(
+    getCourseGlobalTag(),
+    getUserCourseAccessGlobalTag(),
+    getCourseSectionGlobalTag(),
+    getLessonGlobalTag()
+  );
 
   return db
     .select({
@@ -32,15 +40,13 @@ async function getCourses() {
       CourseSectionTable,
       eq(CourseSectionTable.courseId, DbCourseTable.id)
     )
-    .leftJoin(
-      LessonTable,
-      eq(LessonTable.sectionId, CourseSectionTable.id)
-    )
+    .leftJoin(LessonTable, eq(LessonTable.sectionId, CourseSectionTable.id))
     .leftJoin(
       UserCourseAccessTable,
       eq(UserCourseAccessTable.courseId, DbCourseTable.id)
     )
-    .orderBy(asc(DbCourseTable.name)).groupBy(DbCourseTable.id)
+    .orderBy(asc(DbCourseTable.name))
+    .groupBy(DbCourseTable.id);
 }
 
 const CoursesPage = async () => {

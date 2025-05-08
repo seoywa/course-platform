@@ -5,11 +5,11 @@ import {
   uuid,
   text,
   timestamp,
-} from "drizzle-orm/pg-core"
-import { createdAt, id, updatedAt } from "../schemaHelper"
-import { relations } from "drizzle-orm"
-import { UserTable } from "./user"
-import { ProductTable } from "./product"
+} from "drizzle-orm/pg-core";
+import { createdAt, id, updatedAt } from "../schemaHelper";
+import { relations } from "drizzle-orm";
+import { UserTable } from "./user";
+import { ProductTable } from "./product";
 
 export const PurchaseTable = pgTable("purchases", {
   id,
@@ -27,7 +27,7 @@ export const PurchaseTable = pgTable("purchases", {
   refundedAt: timestamp({ withTimezone: true }),
   createdAt,
   updatedAt,
-})
+});
 
 export const PurchaseRelationships = relations(PurchaseTable, ({ one }) => ({
   user: one(UserTable, {
@@ -38,4 +38,4 @@ export const PurchaseRelationships = relations(PurchaseTable, ({ one }) => ({
     fields: [PurchaseTable.productId],
     references: [ProductTable.id],
   }),
-}))
+}));

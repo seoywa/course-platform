@@ -5,15 +5,30 @@ import { courseSchema } from "@/features/schemas/courses";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { createCourse } from "../actions/courses";
+import { createCourse, updateCourse } from "../actions/courses";
 import { actionToast } from "@/hooks/use-toast";
 import RequiredLabelIcon from "../../../components/RequiredLabelIcon";
 
-const CourseForm = () => {
+const CourseForm = ({
+  course,
+}: {
+  course?: {
+    id: string;
+    name: string;
+    description: string;
+  };
+}) => {
   const form = useForm<z.infer<typeof courseSchema>>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
@@ -23,8 +38,10 @@ const CourseForm = () => {
   });
 
   async function onSubmit(values: z.infer<typeof courseSchema>) {
-    const data = await createCourse(values)
-    actionToast({actionData: data})
+    const action =
+      course == null ? createCourse : updateCourse.bind(null, course.id);
+    const data = await action(values);
+    actionToast({ actionData: data });
   }
 
   return (
@@ -33,7 +50,6 @@ const CourseForm = () => {
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex gap-6 flex-col"
       >
-        
         <FormField
           control={form.control}
           name="name"
@@ -69,7 +85,7 @@ const CourseForm = () => {
         />
 
         <div className="self-end">
-          <Button disabled={form.formState.isSubmitting} type='submit'>
+          <Button disabled={form.formState.isSubmitting} type="submit">
             Save
           </Button>
         </div>
