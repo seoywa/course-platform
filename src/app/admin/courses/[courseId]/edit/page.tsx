@@ -1,6 +1,6 @@
 import PageHeader from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { db } from "@/drizzle/db";
 import { CourseSectionTable, CourseTable, LessonTable } from "@/drizzle/schema";
@@ -14,10 +14,11 @@ import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import { notFound } from "next/navigation";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { EyeClosed, PlusIcon, Trash2Icon } from "lucide-react";
+import { EyeClosed, PlusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ActionButton } from "@/components/ActionButton";
-import { deleteSection } from "@/features/courseSections/actions/sections";
+import LessonFormDialog from "@/features/lessons/components/LessonFormDialog";
+import { SortableSectionList } from "@/features/courseSections/components/SortableSectionList";
+import { SortableLessonList } from "@/features/lessons/components/SortableLessonList";
 
 async function getCourse(id: string) {
   "use cache";
@@ -43,13 +44,13 @@ async function getCourse(id: string) {
               status: true,
               description: true,
               youtubeVideoId: true,
-              sectionId: true
-            }
-          }
-        }
-      }
-    }
-  })
+              sectionId: true,
+            },
+          },
+        },
+      },
+    },
+  });
 }
 
 const EditCoursePage = async ({
@@ -67,48 +68,61 @@ const EditCoursePage = async ({
       <PageHeader title={course.name} />
       <Tabs defaultValue="lessons">
         <TabsList>
-          <TabsTrigger value='lessons'>Lessons</TabsTrigger>
-          <TabsTrigger value='details'>Details</TabsTrigger>
+          <TabsTrigger value="lessons">Lessons</TabsTrigger>
+          <TabsTrigger value="details">Details</TabsTrigger>
         </TabsList>
 
         {/* Course Lessons edit */}
-        <TabsContent value="lessons">
+        <TabsContent value="lessons" className="flex flex-col gap-2" >
           <Card>
             <CardHeader className="flex items-center flex-row justify-between">
               <CardTitle>Sections</CardTitle>
               <SectionFormDialog courseId={course.id}>
                 <DialogTrigger asChild>
-                  <Button variant='outline'>
+                  <Button variant="outline">
                     <PlusIcon /> New Section
                   </Button>
                 </DialogTrigger>
               </SectionFormDialog>
             </CardHeader>
             <CardContent>
-              {course.courseSections.map(section => (
-                <div key={section.id} className="flex items-center gap-1">
-                  <div className={cn('contents', section.status === 'private' && 'text-muted-foreground')}>
-                    {section.status === 'private' && (
-                      <EyeClosed className="size-4" />
-                    )}
-                    {section.name}
-                  </div>
-
-                  <SectionFormDialog section={section} courseId={courseId} >
-                    <DialogTrigger asChild>
-                      <Button variant='outline' size='sm' className="ml-auto">
-                        Edit
-                      </Button>
-                    </DialogTrigger>
-                  </SectionFormDialog>
-                  <ActionButton action={deleteSection.bind(null, section.id)} requireAreYouSure variant='destructiveOutline' size='sm'>
-                    <Trash2Icon/>
-                    <span className="sr-only">Delete</span>
-                  </ActionButton>
-                </div>
-              ))}
+              <SortableSectionList
+                courseId={course.id}
+                sections={course.courseSections}
+              />
             </CardContent>
           </Card>
+          <hr className="my-2" />
+          {course.courseSections.map((section) => (
+            <Card key={section.id}>
+              <CardHeader className="flex items-center flex-row justify-between gap-4">
+                <CardTitle
+                  className={cn(
+                    "flex items-center gap-2",
+                    section.status === "private" && "text-muted-foreground"
+                  )}
+                >
+                  {section.status === "private" && <EyeClosed />} {section.name}
+                </CardTitle>
+                <LessonFormDialog
+                  defaultSectionId={section.id}
+                  sections={course.courseSections}
+                >
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <PlusIcon /> New Lesson
+                    </Button>
+                  </DialogTrigger>
+                </LessonFormDialog>
+              </CardHeader>
+              <CardContent>
+                <SortableLessonList
+                  sections={course.courseSections}
+                  lessons={section.lessons}
+                />
+              </CardContent>
+            </Card>
+          ))}
         </TabsContent>
 
         {/* Course Details edit */}

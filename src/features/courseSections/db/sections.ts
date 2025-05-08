@@ -2,6 +2,7 @@ import { db } from "@/drizzle/db";
 import { CourseSectionTable } from "@/drizzle/schema";
 import { revalidateCourseSectionCache } from "./cache";
 import { eq } from "drizzle-orm";
+import { id } from "@/drizzle/schemaHelper";
 
 export async function getNextCourseSectionOrder(courseId: string) {
   const section = await db.query.CourseSectionTable.findFirst({
@@ -11,6 +12,28 @@ export async function getNextCourseSectionOrder(courseId: string) {
   });
 
   return section ? section.order + 1 : 0;
+}
+
+export async function updateSectionOrders(sectionIds: string[]) {
+  const sections = await Promise.all(
+    sectionIds.map((id, index) =>
+      db
+        .update(CourseSectionTable)
+        .set({ order: index })
+        .where(eq(CourseSectionTable.id, id))
+        .returning({
+          courseId: CourseSectionTable.courseId,
+          id: CourseSectionTable.id
+        })
+    )
+  );
+
+  sections.flat().forEach(({id, courseId}) => {
+    revalidateCourseSectionCache({
+      courseId,
+      id
+    })
+  })
 }
 
 export async function insertSection(
@@ -57,10 +80,10 @@ export async function deleteSection(id: string) {
     .where(eq(CourseSectionTable.id, id))
     .returning();
 
-  if (deletedSection == null) throw new Error('Failed to delete section')
+  if (deletedSection == null) throw new Error("Failed to delete section");
 
   revalidateCourseSectionCache({
     courseId: deletedSection.courseId,
-    id: deletedSection.id
-  })
+    id: deletedSection.id,
+  });
 }

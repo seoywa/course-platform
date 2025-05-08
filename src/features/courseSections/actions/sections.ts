@@ -1,15 +1,20 @@
 "use server";
 
-import { courseSchema } from "@/features/schemas/courses";
 import { getCurrentUser } from "@/services/clerk";
 import { z } from "zod";
-import { 
+import {
   canCreateCourseSections,
   canDeleteCourseSections,
   canUpdateCourseSections,
 } from "../permissions/sections";
 import { sectionSchema } from "../schemas/sections";
-import { getNextCourseSectionOrder, insertSection, updateSection as updateSectionDB, deleteSection as deleteSectionDB } from "../db/sections";
+import {
+  getNextCourseSectionOrder,
+  insertSection,
+  updateSection as updateSectionDB,
+  deleteSection as deleteSectionDB,
+  updateSectionOrders as updateSectionOrdersDb
+} from "../db/sections";
 
 export async function createSection(
   courseId: string,
@@ -51,4 +56,16 @@ export async function deleteSection(id: string) {
   await deleteSectionDB(id);
 
   return { error: false, message: "Successfully deleted this section" };
+}
+
+export async function updateSectionOrders(sectionIds: string[]) {
+  if (
+    sectionIds.length === 0 ||
+    !canUpdateCourseSections(await getCurrentUser())
+  ) {
+    return { error: true, message: "Error reordering your sections" };
+  }
+  await updateSectionOrdersDb(sectionIds);
+
+  return { error: false, message: "Successfully reordered your sections" };
 }
